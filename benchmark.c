@@ -30,11 +30,9 @@ main(int argc, char** argv)
 	memset(buf, 'A', BUFLEN);
 
 	{ // Prep Linear Index
-		start = clock();
 		for (size_t i = 0; i < BUFLEN; ++i) {
 			ibuf[i] = i;
 		}
-		end = clock();
 	}
 
 	{ // Linear access
@@ -49,13 +47,11 @@ main(int argc, char** argv)
 
 	{ // Prep Random Index (by scrambling linear index)
 		srand(0);
-		start = clock();
 		for (size_t i = 0; i < BUFLEN; ++i) {
 			uint32_t n = ibuf[i];
 			ibuf[i] = ibuf[(size_t)rand() % BUFLEN];
 			ibuf[ibuf[i]] = n;
 		}
-		end = clock();
 	}
 
 	{ // Random access
