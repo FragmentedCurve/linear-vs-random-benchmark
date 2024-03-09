@@ -8,7 +8,7 @@ T1=0
 
 echo "Finding a buffer length for your CPU."
 
-while [ $(( $T1 - $T0 )) -le 2 ]; do
+while [ $T0 -le 1 ]; do
 	echo "Trying ${BUFLEN} ..."
 
 	make clean benchmark BUFLEN=${BUFLEN} > /dev/null
