@@ -1,9 +1,5 @@
 /*
 	Compare the speed of reading an array randomly vs linearly.
-
-	Filename:   random_access.c
-	Compile:    cc -D BUFLEN=1000000000 -O0 -s -o random_access random_access.c
-	Run:        ./random_access > /dev/null
  */
 
 #define _XOPEN_SOURCE 600
@@ -15,31 +11,23 @@
 #include <time.h>
 #include <assert.h>
 
-#include <dlfcn.h>
-
 #ifndef BUFLEN
 #define BUFLEN (1000000000)
 #endif
 
-void (*nop)(char);
+void nop(char);
 
 int
 main(int argc, char** argv)
 {
 	clock_t start, end;
-	void* handle;
 
-	char* buf = malloc(BUFLEN);
-	uint32_t* ibuf = malloc(BUFLEN * sizeof(uint32_t));
-	assert(buf && ibuf);
+	int       time[2] = {0};
+	char*     buf     = malloc(BUFLEN);
+	uint32_t* ibuf    = malloc(BUFLEN * sizeof(uint32_t));
 
+	assert(buf && ibuf && "Memory allocation failed.");
 	memset(buf, 'A', BUFLEN);
-
-	// Load nop() from nop.so
-	handle = dlopen("./nop.so", RTLD_LAZY);
-	assert(handle);
-	nop = dlsym(handle, "nop");
-	assert(!dlerror());
 
 	{ // Prep Linear Index
 		start = clock();
@@ -47,7 +35,6 @@ main(int argc, char** argv)
 			ibuf[i] = i;
 		}
 		end = clock();
-		fprintf(stderr, "Building Linear Index: %5d sec\n", (end - start) / CLOCKS_PER_SEC);
 	}
 
 	{ // Linear access
@@ -57,7 +44,7 @@ main(int argc, char** argv)
 			nop(x); // Prevents optimizations
 		}
 		end = clock();
-		fprintf(stderr, "Linear Access:         %5d sec\n", (end - start) / CLOCKS_PER_SEC);
+		time[0] = (end - start) / CLOCKS_PER_SEC;
 	}
 
 	{ // Prep Random Index (by scrambling linear index)
@@ -69,7 +56,6 @@ main(int argc, char** argv)
 			ibuf[ibuf[i]] = n;
 		}
 		end = clock();
-		fprintf(stderr, "Building Random Index: %5d sec\n", (end - start) / CLOCKS_PER_SEC);
 	}
 
 	{ // Random access
@@ -79,10 +65,11 @@ main(int argc, char** argv)
 			nop(x); // Prevents optimizations
 		}
 		end = clock();
-		fprintf(stderr, "Random Access:         %5d sec\n", (end - start) / CLOCKS_PER_SEC);
+		time[1] = (end - start) / CLOCKS_PER_SEC;
 	}
 
-	dlclose(handle);
+	printf("%10s   %10s\n", "Linear (s)", "Random (s)");
+	printf("%10d   %10d\n", time[0], time[1]);
 
 	return 0;
 }
